@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Admin/Desktop/ML_MAIN_PRODUCTION/MLFLOW/mlruns/550908963156577326/7ee20a512958450991b6ef0dd10b735b/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '550908963156577326'
+lifecycle_stage: active
+run_id: 7ee20a512958450991b6ef0dd10b735b
+run_name: adventurous-lamb-773
+run_uuid: 7ee20a512958450991b6ef0dd10b735b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763397494383
+status: 1
+tags: []
+user_id: Admin
