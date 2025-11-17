@@ -1,3 +1,7 @@
+# The data set used in this example is from http://archive.ics.uci.edu/ml/datasets/Wine+Quality
+# P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
+# Modeling wine preferences by data mining from physicochemical properties. In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
+
 import os
 import warnings
 import sys
@@ -9,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import ElasticNet
 from urllib.parse import urlparse
 import mlflow
-from mlflow.models import infer_signature
+from mlflow.models.signature import infer_signature
 import mlflow.sklearn
 
 import logging
@@ -40,8 +44,10 @@ if __name__ == "__main__":
             "Unable to download training & test CSV, check your internet connection. Error: %s", e
         )
 
-    # Split data
+    # Split the data into training and test sets. (0.75, 0.25) split.
     train, test = train_test_split(data)
+
+    # The predicted column is "quality" which is a scalar from [3, 9]
     train_x = train.drop(["quality"], axis=1)
     test_x = test.drop(["quality"], axis=1)
     train_y = train[["quality"]]
@@ -57,6 +63,7 @@ if __name__ == "__main__":
         lr.fit(train_x, train_y)
 
         predicted_qualities = lr.predict(test_x)
+
         (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
 
         print("Elasticnet model (alpha={:f}, l1_ratio={:f}):".format(alpha, l1_ratio))
@@ -70,5 +77,24 @@ if __name__ == "__main__":
         mlflow.log_metric("r2", r2)
         mlflow.log_metric("mae", mae)
 
-        # Log the model locally (no DagsHub or remote tracking)
-        mlflow.sklearn.log_model(lr, "model")
+        #predictions = lr.predict(train_x)
+        #signature = infer_signature(train_x, predictions)
+
+        ## For Remote server only(DAGShub)
+
+        remote_server_uri="https://dagshub.com/niranjancharan75/mlflow.mlflow"
+        mlflow.set_tracking_uri(remote_server_uri)
+
+        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+
+        # Model registry does not work with file store
+        if tracking_url_type_store != "file":
+            # Register the model
+            # There are other ways to use the Model Registry, which depends on the use case,
+            # please refer to the doc for more information:
+            # https://mlflow.org/docs/latest/model-registry.html#api-workflow
+            mlflow.sklearn.log_model(
+                lr, "model", registered_model_name="ElasticnetWineModel"
+            )
+        else:
+            mlflow.sklearn.log_model(lr, "model")
